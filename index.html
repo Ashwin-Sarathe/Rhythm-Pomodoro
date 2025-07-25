@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music-Based Productivity Timer</title>
+    <title>Rhythm-Pomodoro</title>
     <style>
         /* CSS Variables for Design System */
         :root {
@@ -77,14 +77,58 @@
         }
 
         /* Timer Display */
+        .timer-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .circular-progress {
+            position: relative;
+            width: 280px;
+            height: 280px;
+        }
+
+        .circular-progress svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 8;
+        }
+
+        .progress-ring {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 816; /* 2 * π * 130 (radius) */
+            stroke-dashoffset: 816;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .progress-ring.break-mode {
+            stroke: var(--success);
+        }
+
         .timer-display {
-            font-size: 4rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3.5rem;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
-            margin-bottom: 2rem;
             line-height: 1;
             color: var(--text-primary);
             transition: var(--transition);
+            text-align: center;
         }
 
         /* Controls */
@@ -264,8 +308,13 @@
                 padding: 2rem 1rem;
             }
 
+            .circular-progress {
+                width: 220px;
+                height: 220px;
+            }
+
             .timer-display {
-                font-size: 3rem;
+                font-size: 2.5rem;
             }
 
             .controls {
@@ -320,7 +369,15 @@
     <div class="timer-container" id="timerContainer">
         <div class="phase-indicator" id="phaseIndicator">Focus Mode</div>
         
-        <div class="timer-display" id="timerDisplay">25:00</div>
+        <div class="timer-wrapper">
+            <div class="circular-progress">
+                <svg>
+                    <circle class="progress-ring-bg" cx="140" cy="140" r="130"></circle>
+                    <circle class="progress-ring" id="progressRing" cx="140" cy="140" r="130"></circle>
+                </svg>
+                <div class="timer-display" id="timerDisplay">25:00</div>
+            </div>
+        </div>
         
         <div class="controls">
             <button class="btn btn-primary" id="startBtn">Start</button>
@@ -356,8 +413,8 @@
 
     <script>
         // Timer Configuration
-        const FOCUS_TIME = 25 * 60; // 25 minutes in seconds
-        const BREAK_TIME = 5 * 60;  // 5 minutes in seconds
+        const FOCUS_TIME = 2 * 60; // 25 minutes in seconds
+        const BREAK_TIME = 1 * 60;  // 5 minutes in seconds
 
         // Timer State
         let timeRemaining = FOCUS_TIME;
@@ -370,6 +427,7 @@
         const timerContainer = document.getElementById('timerContainer');
         const phaseIndicator = document.getElementById('phaseIndicator');
         const timerDisplay = document.getElementById('timerDisplay');
+        const progressRing = document.getElementById('progressRing');
         const startBtn = document.getElementById('startBtn');
         const resetBtn = document.getElementById('resetBtn');
         const sessionCount = document.getElementById('sessionCount');
@@ -379,6 +437,10 @@
         const volumeDisplay = document.getElementById('volumeDisplay');
         const focusAudio = document.getElementById('focusAudio');
         const breakAudio = document.getElementById('breakAudio');
+
+        // Progress ring constants
+        const RING_RADIUS = 130;
+        const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
         // Initialize Application
         function initApp() {
@@ -466,6 +528,7 @@
             } else {
                 // Update display without modifying timeRemaining until phase completion
                 updateTimerDisplay(newTimeRemaining);
+                updateProgressRing(newTimeRemaining);
             }
         }
 
@@ -502,6 +565,7 @@
         function updateDisplay() {
             updateTimerDisplay(timeRemaining);
             updatePhaseIndicator();
+            updateProgressRing(timeRemaining);
         }
 
         function updateTimerDisplay(seconds) {
@@ -514,10 +578,19 @@
             if (currentPhase === 'focus') {
                 phaseIndicator.textContent = 'Focus Mode';
                 phaseIndicator.classList.remove('break-mode');
+                progressRing.classList.remove('break-mode');
             } else {
                 phaseIndicator.textContent = 'Break Mode';
                 phaseIndicator.classList.add('break-mode');
+                progressRing.classList.add('break-mode');
             }
+        }
+
+        function updateProgressRing(seconds) {
+            const totalTime = currentPhase === 'focus' ? FOCUS_TIME : BREAK_TIME;
+            const progress = (totalTime - seconds) / totalTime;
+            const offset = RING_CIRCUMFERENCE * (1 - progress);
+            progressRing.style.strokeDashoffset = offset;
         }
 
         // Session Tracking
