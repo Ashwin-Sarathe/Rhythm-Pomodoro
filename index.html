@@ -7,6 +7,7 @@
     <style>
         /* CSS Variables for Design System */
         :root {
+            /* Dark Mode (Default) */
             --bg-primary: #0a0a0a;
             --bg-secondary: #1a1a1a;
             --text-primary: #ffffff;
@@ -20,6 +21,21 @@
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
             --radius: 12px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Light Mode */
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --border: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         /* Reset and Base Styles */
@@ -82,6 +98,45 @@
             margin-bottom: 3rem;
             padding-bottom: 2rem;
             border-bottom: 1px solid var(--border);
+            position: relative;
+            padding-top: 3rem;
+        }
+
+        /* Theme Switcher */
+        .theme-switcher {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .theme-toggle {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border);
+            border-color: var(--border-hover);
+        }
+
+        .theme-icon {
+            font-size: 1rem;
+            transition: var(--transition);
         }
 
         .app-title {
@@ -103,6 +158,12 @@
             font-style: italic;
             letter-spacing: 0.25px;
             margin: 0;
+        }
+
+        .theme-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
 
         /* Timer Display */
@@ -531,6 +592,16 @@
                 font-size: 0.875rem;
             }
 
+            .app-header {
+                padding-top: 0;
+            }
+
+            .theme-switcher {
+                position: static;
+                justify-content: center;
+                margin-bottom: 1.5rem;
+            }
+
             .controls {
                 flex-direction: column;
                 align-items: stretch;
@@ -593,6 +664,12 @@
 <body>
     <div class="timer-container" id="timerContainer">
         <div class="app-header">
+            <div class="theme-switcher">
+                <button class="theme-toggle" id="themeToggle">
+                    <span class="theme-icon" id="themeIcon">🌙</span>
+                    <span class="theme-label" id="themeLabel">Dark</span>
+                </button>
+            </div>
             <h1 class="app-title">Rhythm-Pomodoro</h1>
             <p class="app-tagline">Work. Break. Repeat—with Rhythm</p>
         </div>
@@ -712,6 +789,9 @@
         const volumeDisplay = document.getElementById('volumeDisplay');
         const focusAudio = document.getElementById('focusAudio');
         const breakAudio = document.getElementById('breakAudio');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeLabel = document.getElementById('themeLabel');
 
         // Progress ring constants
         const RING_RADIUS = 130;
@@ -723,6 +803,7 @@
 
         // Initialize Application
         function initApp() {
+            loadTheme();
             loadSessionCount();
             loadSessionHistory();
             loadVolumeSettings();
@@ -738,6 +819,7 @@
             resetAllBtn.addEventListener('click', resetAllData);
             muteBtn.addEventListener('click', toggleMute);
             volumeSlider.addEventListener('input', updateVolume);
+            themeToggle.addEventListener('click', toggleTheme);
             
             // Keyboard shortcuts
             document.addEventListener('keydown', handleKeyPress);
@@ -1110,6 +1192,34 @@
             if (!muted) {
                 updateVolume();
             }
+        }
+
+        // Theme Management
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            setTheme(newTheme);
+        }
+        
+        function setTheme(theme) {
+            if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeIcon.textContent = '☀️';
+                themeLabel.textContent = 'Light';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                themeIcon.textContent = '🌙';
+                themeLabel.textContent = 'Dark';
+            }
+            
+            localStorage.setItem('pomodoroTheme', theme);
+            showStatus(`Switched to ${theme} mode`, 'success');
+        }
+        
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('pomodoroTheme') || 'dark';
+            setTheme(savedTheme);
         }
 
         // Status Messages
