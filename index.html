@@ -151,8 +151,19 @@
             min-width: 120px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             gap: 0.5rem;
+        }
+
+        .btn kbd {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Courier New', monospace;
         }
 
         .btn-primary {
@@ -299,6 +310,56 @@
             font-size: 0.875rem;
         }
 
+        /* Keyboard Shortcuts */
+        .keyboard-shortcuts {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .keyboard-shortcuts h3 {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0;
+            font-size: 0.875rem;
+        }
+
+        .shortcut-item kbd {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .shortcut-item span {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
         /* Audio Controls */
         .audio-controls {
             margin-top: 1.5rem;
@@ -348,15 +409,28 @@
             padding: 0.5rem;
             background: transparent;
             border: 1px solid var(--border);
-            border-radius: 50%;
+            border-radius: var(--radius);
             color: var(--text-secondary);
             cursor: pointer;
             transition: var(--transition);
-            width: 40px;
+            min-width: 80px;
             height: 40px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .mute-shortcut {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            padding: 0.1rem 0.3rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Courier New', monospace;
         }
 
         .mute-btn:hover {
@@ -417,10 +491,21 @@
 
             .btn {
                 min-width: auto;
+                justify-content: center;
+                gap: 0.75rem;
             }
 
             .volume-control {
                 flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .shortcuts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mute-btn {
+                justify-content: center;
                 gap: 0.5rem;
             }
         }
@@ -473,9 +558,18 @@
         </div>
         
         <div class="controls">
-            <button class="btn btn-primary" id="startBtn">Start</button>
-            <button class="btn btn-secondary" id="resetBtn">Reset</button>
-            <button class="btn btn-tertiary" id="resetAllBtn">Reset All</button>
+            <button class="btn btn-primary" id="startBtn">
+                <span>Start</span>
+                <kbd>Space</kbd>
+            </button>
+            <button class="btn btn-secondary" id="resetBtn">
+                <span>Reset</span>
+                <kbd>R</kbd>
+            </button>
+            <button class="btn btn-tertiary" id="resetAllBtn">
+                <span>Reset All</span>
+                <kbd>X</kbd>
+            </button>
         </div>
         
         <div class="session-counter">
@@ -492,9 +586,34 @@
 
         <div class="audio-controls">
             <div class="volume-control">
-                <button class="mute-btn" id="muteBtn" title="Toggle mute">🔊</button>
+                <button class="mute-btn" id="muteBtn" title="Toggle mute (M)">
+                    <span class="mute-icon">🔊</span>
+                    <kbd class="mute-shortcut">M</kbd>
+                </button>
                 <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
                 <span id="volumeDisplay">50%</span>
+            </div>
+        </div>
+
+        <div class="keyboard-shortcuts">
+            <h3>Keyboard Shortcuts</h3>
+            <div class="shortcuts-grid">
+                <div class="shortcut-item">
+                    <kbd>Space</kbd>
+                    <span>Start/Pause</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>R</kbd>
+                    <span>Reset Timer</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>X</kbd>
+                    <span>Reset All Data</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>M</kbd>
+                    <span>Mute/Unmute</span>
+                </div>
             </div>
         </div>
 
@@ -514,8 +633,8 @@
 
     <script>
         // Timer Configuration
-        const FOCUS_TIME = 2 * 60; // 25 minutes in seconds
-        const BREAK_TIME = 1 * 60;  // 5 minutes in seconds
+        const FOCUS_TIME = 25 * 60; // 25 minutes in seconds
+        const BREAK_TIME = 5 * 60;  // 5 minutes in seconds
 
         // Timer State
         let timeRemaining = FOCUS_TIME;
@@ -573,12 +692,28 @@
 
         // Keyboard Controls
         function handleKeyPress(event) {
-            if (event.code === 'Space') {
-                event.preventDefault();
-                toggleTimer();
-            } else if (event.code === 'KeyR') {
-                event.preventDefault();
-                resetTimer();
+            // Prevent shortcuts when user is typing in an input field
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            switch(event.code) {
+                case 'Space':
+                    event.preventDefault();
+                    toggleTimer();
+                    break;
+                case 'KeyR':
+                    event.preventDefault();
+                    resetTimer();
+                    break;
+                case 'KeyX':
+                    event.preventDefault();
+                    resetAllData();
+                    break;
+                case 'KeyM':
+                    event.preventDefault();
+                    toggleMute();
+                    break;
             }
         }
 
@@ -884,19 +1019,21 @@
         function setMuted(muted) {
             localStorage.setItem('pomodoroMuted', muted.toString());
             
+            const muteIcon = muteBtn.querySelector('.mute-icon');
+            
             if (muted) {
                 focusAudio.volume = 0;
                 breakAudio.volume = 0;
-                muteBtn.textContent = '🔇';
+                muteIcon.textContent = '🔇';
                 muteBtn.classList.add('muted');
-                muteBtn.title = 'Unmute';
+                muteBtn.title = 'Unmute (M)';
             } else {
                 const volume = volumeSlider.value / 100;
                 focusAudio.volume = volume;
                 breakAudio.volume = volume;
-                muteBtn.textContent = '🔊';
+                muteIcon.textContent = '🔊';
                 muteBtn.classList.remove('muted');
-                muteBtn.title = 'Mute';
+                muteBtn.title = 'Mute (M)';
             }
         }
 
