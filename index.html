@@ -183,12 +183,25 @@
             transform: none !important;
         }
 
+        .btn-tertiary {
+            background: transparent;
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .btn-tertiary:hover {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border-color: var(--warning);
+        }
+
         /* Session Counter */
         .session-counter {
             background: var(--bg-primary);
             padding: 1rem;
             border-radius: var(--radius);
             border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
         }
 
         .session-counter h3 {
@@ -204,6 +217,86 @@
             font-size: 2rem;
             font-weight: 700;
             color: var(--accent);
+        }
+
+        /* Session History Log */
+        .session-history {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .session-history h3 {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .history-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item.focus {
+            border-left: 3px solid var(--accent);
+            padding-left: 0.75rem;
+        }
+
+        .history-item.break {
+            border-left: 3px solid var(--success);
+            padding-left: 0.75rem;
+        }
+
+        .history-session {
+            font-weight: 600;
+            color: var(--text-secondary);
+            min-width: 70px;
+        }
+
+        .history-phase {
+            font-weight: 500;
+            min-width: 50px;
+        }
+
+        .history-phase.focus {
+            color: var(--accent);
+        }
+
+        .history-phase.break {
+            color: var(--success);
+        }
+
+        .history-status {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .history-empty {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 0.875rem;
         }
 
         /* Audio Controls */
@@ -382,11 +475,19 @@
         <div class="controls">
             <button class="btn btn-primary" id="startBtn">Start</button>
             <button class="btn btn-secondary" id="resetBtn">Reset</button>
+            <button class="btn btn-tertiary" id="resetAllBtn">Reset All</button>
         </div>
         
         <div class="session-counter">
             <h3>Sessions Completed</h3>
             <div class="session-count" id="sessionCount">0</div>
+        </div>
+
+        <div class="session-history">
+            <h3>Session History</h3>
+            <ul class="history-list" id="historyList">
+                <li class="history-empty">No sessions completed yet</li>
+            </ul>
         </div>
 
         <div class="audio-controls">
@@ -430,7 +531,9 @@
         const progressRing = document.getElementById('progressRing');
         const startBtn = document.getElementById('startBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const resetAllBtn = document.getElementById('resetAllBtn');
         const sessionCount = document.getElementById('sessionCount');
+        const historyList = document.getElementById('historyList');
         const statusMessage = document.getElementById('statusMessage');
         const muteBtn = document.getElementById('muteBtn');
         const volumeSlider = document.getElementById('volumeSlider');
@@ -442,9 +545,14 @@
         const RING_RADIUS = 130;
         const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
+        // Session history tracking
+        let sessionHistory = [];
+        let totalSessionNumber = 0;
+
         // Initialize Application
         function initApp() {
             loadSessionCount();
+            loadSessionHistory();
             loadVolumeSettings();
             updateDisplay();
             setupEventListeners();
@@ -455,6 +563,7 @@
         function setupEventListeners() {
             startBtn.addEventListener('click', toggleTimer);
             resetBtn.addEventListener('click', resetTimer);
+            resetAllBtn.addEventListener('click', resetAllData);
             muteBtn.addEventListener('click', toggleMute);
             volumeSlider.addEventListener('input', updateVolume);
             
@@ -536,10 +645,12 @@
             if (currentPhase === 'focus') {
                 // Focus session completed
                 incrementSessionCount();
+                addToSessionHistory('Focus');
                 switchToBreakPhase();
                 showStatus('Focus session completed! Time for a break.', 'success');
             } else {
                 // Break completed
+                addToSessionHistory('Break');
                 switchToFocusPhase();
                 showStatus('Break over! Ready for another focus session?', 'success');
             }
@@ -606,6 +717,111 @@
 
         function loadSessionCount() {
             sessionCount.textContent = getSessionCount();
+        }
+
+        // Reset All Data Function
+        function resetAllData() {
+            if (confirm('Are you sure you want to reset all session data? This cannot be undone.')) {
+                // Clear all localStorage data
+                localStorage.removeItem('pomodoroSessions');
+                localStorage.removeItem('pomodoroHistory');
+                localStorage.removeItem('pomodoroTotalSessions');
+                localStorage.removeItem('pomodoroVolume');
+                localStorage.removeItem('pomodoroMuted');
+                
+                // Reset in-memory variables
+                sessionHistory = [];
+                totalSessionNumber = 0;
+                
+                // Update UI
+                sessionCount.textContent = '0';
+                updateHistoryDisplay();
+                
+                // Reset volume settings to default
+                volumeSlider.value = 50;
+                volumeDisplay.textContent = '50%';
+                setMuted(false);
+                updateVolume();
+                
+                showStatus('All data has been reset!', 'success');
+            }
+        }
+
+        // Session History Management
+        function addToSessionHistory(phase) {
+            totalSessionNumber++;
+            
+            const historyEntry = {
+                sessionNumber: totalSessionNumber,
+                phase: phase,
+                status: 'Completed',
+                timestamp: new Date().toLocaleString()
+            };
+            
+            // Add to beginning of array (most recent first)
+            sessionHistory.unshift(historyEntry);
+            
+            // Keep only last 5 sessions
+            if (sessionHistory.length > 5) {
+                sessionHistory = sessionHistory.slice(0, 5);
+            }
+            
+            // Save to localStorage and update display
+            saveSessionHistory();
+            updateHistoryDisplay();
+        }
+        
+        function updateHistoryDisplay() {
+            // Clear existing history
+            historyList.innerHTML = '';
+            
+            if (sessionHistory.length === 0) {
+                historyList.innerHTML = '<li class="history-empty">No sessions completed yet</li>';
+                return;
+            }
+            
+            // Add each history item
+            sessionHistory.forEach(entry => {
+                const listItem = document.createElement('li');
+                listItem.className = `history-item ${entry.phase.toLowerCase()}`;
+                
+                listItem.innerHTML = `
+                    <span class="history-session">Session ${entry.sessionNumber}</span>
+                    <span class="history-separator">–</span>
+                    <span class="history-phase ${entry.phase.toLowerCase()}">${entry.phase}</span>
+                    <span class="history-separator">–</span>
+                    <span class="history-status">${entry.status}</span>
+                `;
+                
+                historyList.appendChild(listItem);
+            });
+        }
+        
+        function saveSessionHistory() {
+            localStorage.setItem('pomodoroHistory', JSON.stringify(sessionHistory));
+            localStorage.setItem('pomodoroTotalSessions', totalSessionNumber.toString());
+        }
+        
+        function loadSessionHistory() {
+            // Load session history
+            const savedHistory = localStorage.getItem('pomodoroHistory');
+            if (savedHistory) {
+                try {
+                    sessionHistory = JSON.parse(savedHistory);
+                } catch (e) {
+                    console.warn('Could not parse session history:', e);
+                    sessionHistory = [];
+                }
+            }
+            
+            // Load total session number
+            const savedTotal = localStorage.getItem('pomodoroTotalSessions');
+            if (savedTotal) {
+                totalSessionNumber = parseInt(savedTotal, 10) || 0;
+            }
+            
+            // Update display
+            updateHistoryDisplay();
         }
 
         // Audio Management
