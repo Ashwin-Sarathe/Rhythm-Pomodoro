@@ -76,6 +76,35 @@
             background: var(--success);
         }
 
+        /* App Header */
+        .app-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .app-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .app-tagline {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-style: italic;
+            letter-spacing: 0.25px;
+            margin: 0;
+        }
+
         /* Timer Display */
         .timer-wrapper {
             position: relative;
@@ -494,6 +523,14 @@
                 font-size: 2.5rem;
             }
 
+            .app-title {
+                font-size: 2rem;
+            }
+
+            .app-tagline {
+                font-size: 0.875rem;
+            }
+
             .controls {
                 flex-direction: column;
                 align-items: stretch;
@@ -555,6 +592,11 @@
 </head>
 <body>
     <div class="timer-container" id="timerContainer">
+        <div class="app-header">
+            <h1 class="app-title">Rhythm-Pomodoro</h1>
+            <p class="app-tagline">Work. Break. Repeat—with Rhythm</p>
+        </div>
+        
         <div class="phase-indicator" id="phaseIndicator">Focus Mode</div>
         
         <div class="timer-wrapper">
