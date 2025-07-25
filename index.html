@@ -38,7 +38,17 @@
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        /* Reset and Base Styles */
+        /* Enhanced Background for Depth */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(0,0,0,0.05) 70%);
+            z-index: -1;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -245,7 +255,10 @@
             gap: 0.5rem;
         }
 
-        .btn kbd {
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 4px;
@@ -659,10 +672,37 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.8; }
         }
+        /* Entrance Animations */
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn ease 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .slide-in {
+            transform: translateY(-20px);
+            opacity: 0;
+            animation: slideIn ease 0.5s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="timer-container" id="timerContainer">
+    <div class="timer-container slide-in" id="timerContainer">
         <div class="app-header">
             <div class="theme-switcher">
                 <button class="theme-toggle" id="themeToggle">
@@ -670,7 +710,7 @@
                     <span class="theme-label" id="themeLabel">Dark</span>
                 </button>
             </div>
-            <h1 class="app-title">Rhythm-Pomodoro</h1>
+            <h1 class="app-title fade-in">Rhythm-Pomodoro</h1>
             <p class="app-tagline">Work. Break. Repeat—with Rhythm</p>
         </div>
         
