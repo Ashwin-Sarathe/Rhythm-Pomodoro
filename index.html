@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music-Based Productivity Timer</title>
+    <style>
+        /* CSS Variables for Design System */
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --border: #2a2a2a;
+            --border-hover: #3a3a3a;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        /* Main Container */
+        .timer-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 480px;
+            transition: var(--transition);
+        }
+
+        .timer-container:hover {
+            border-color: var(--border-hover);
+        }
+
+        /* Phase Indicator */
+        .phase-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--accent);
+            color: white;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+        }
+
+        .phase-indicator.break-mode {
+            background: var(--success);
+        }
+
+        /* Timer Display */
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 2rem;
+            line-height: 1;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Session Counter */
+        .session-counter {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .session-counter h3 {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .session-count {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* Audio Controls */
+        .audio-controls {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+            flex: 1;
+            max-width: 150px;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .mute-btn {
+            padding: 0.5rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mute-btn:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-hover);
+        }
+
+        .mute-btn.muted {
+            color: var(--warning);
+            border-color: var(--warning);
+        }
+
+        /* Status Messages */
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-message.show {
+            opacity: 1;
+        }
+
+        .status-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-message.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .timer-container {
+                padding: 2rem 1rem;
+            }
+
+            .timer-display {
+                font-size: 3rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                min-width: auto;
+            }
+
+            .volume-control {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Pulse Animation for Active Timer */
+        .timer-active .timer-display {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container" id="timerContainer">
+        <div class="phase-indicator" id="phaseIndicator">Focus Mode</div>
+        
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">Start</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+        </div>
+        
+        <div class="session-counter">
+            <h3>Sessions Completed</h3>
+            <div class="session-count" id="sessionCount">0</div>
+        </div>
+
+        <div class="audio-controls">
+            <div class="volume-control">
+                <button class="mute-btn" id="muteBtn" title="Toggle mute">🔊</button>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
+                <span id="volumeDisplay">50%</span>
+            </div>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="focusAudio" loop preload="auto">
+        <source src="work.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <audio id="breakAudio" loop preload="auto">
+        <source src="break.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        // Timer Configuration
+        const FOCUS_TIME = 25 * 60; // 25 minutes in seconds
+        const BREAK_TIME = 5 * 60;  // 5 minutes in seconds
+
+        // Timer State
+        let timeRemaining = FOCUS_TIME;
+        let isRunning = false;
+        let currentPhase = 'focus'; // 'focus' or 'break'
+        let intervalId = null;
+        let startTime = null;
+
+        // DOM Elements
+        const timerContainer = document.getElementById('timerContainer');
+        const phaseIndicator = document.getElementById('phaseIndicator');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const sessionCount = document.getElementById('sessionCount');
+        const statusMessage = document.getElementById('statusMessage');
+        const muteBtn = document.getElementById('muteBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeDisplay = document.getElementById('volumeDisplay');
+        const focusAudio = document.getElementById('focusAudio');
+        const breakAudio = document.getElementById('breakAudio');
+
+        // Initialize Application
+        function initApp() {
+            loadSessionCount();
+            loadVolumeSettings();
+            updateDisplay();
+            setupEventListeners();
+            setupAudioErrorHandling();
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            startBtn.addEventListener('click', toggleTimer);
+            resetBtn.addEventListener('click', resetTimer);
+            muteBtn.addEventListener('click', toggleMute);
+            volumeSlider.addEventListener('input', updateVolume);
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        // Keyboard Controls
+        function handleKeyPress(event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                toggleTimer();
+            } else if (event.code === 'KeyR') {
+                event.preventDefault();
+                resetTimer();
+            }
+        }
+
+        // Timer Functions
+        function toggleTimer() {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                startTime = Date.now();
+                intervalId = setInterval(updateTimer, 1000);
+                startBtn.textContent = 'Pause';
+                timerContainer.classList.add('timer-active');
+                playCurrentPhaseMusic();
+                showStatus('Timer started!', 'success');
+            }
+        }
+
+        function pauseTimer() {
+            if (isRunning) {
+                isRunning = false;
+                clearInterval(intervalId);
+                startBtn.textContent = 'Start';
+                timerContainer.classList.remove('timer-active');
+                pauseAllMusic();
+                showStatus('Timer paused', 'warning');
+            }
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(intervalId);
+            currentPhase = 'focus';
+            timeRemaining = FOCUS_TIME;
+            startBtn.textContent = 'Start';
+            timerContainer.classList.remove('timer-active');
+            updateDisplay();
+            stopAllMusic();
+            showStatus('Timer reset', 'warning');
+        }
+
+        function updateTimer() {
+            if (!isRunning) return;
+
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const newTimeRemaining = Math.max(0, timeRemaining - elapsed);
+
+            if (newTimeRemaining === 0) {
+                completePhase();
+            } else {
+                // Update display without modifying timeRemaining until phase completion
+                updateTimerDisplay(newTimeRemaining);
+            }
+        }
+
+        function completePhase() {
+            if (currentPhase === 'focus') {
+                // Focus session completed
+                incrementSessionCount();
+                switchToBreakPhase();
+                showStatus('Focus session completed! Time for a break.', 'success');
+            } else {
+                // Break completed
+                switchToFocusPhase();
+                showStatus('Break over! Ready for another focus session?', 'success');
+            }
+        }
+
+        function switchToFocusPhase() {
+            currentPhase = 'focus';
+            timeRemaining = FOCUS_TIME;
+            startTime = Date.now();
+            updateDisplay();
+            playCurrentPhaseMusic();
+        }
+
+        function switchToBreakPhase() {
+            currentPhase = 'break';
+            timeRemaining = BREAK_TIME;
+            startTime = Date.now();
+            updateDisplay();
+            playCurrentPhaseMusic();
+        }
+
+        // Display Functions
+        function updateDisplay() {
+            updateTimerDisplay(timeRemaining);
+            updatePhaseIndicator();
+        }
+
+        function updateTimerDisplay(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function updatePhaseIndicator() {
+            if (currentPhase === 'focus') {
+                phaseIndicator.textContent = 'Focus Mode';
+                phaseIndicator.classList.remove('break-mode');
+            } else {
+                phaseIndicator.textContent = 'Break Mode';
+                phaseIndicator.classList.add('break-mode');
+            }
+        }
+
+        // Session Tracking
+        function incrementSessionCount() {
+            const count = getSessionCount() + 1;
+            localStorage.setItem('pomodoroSessions', count.toString());
+            sessionCount.textContent = count;
+        }
+
+        function getSessionCount() {
+            return parseInt(localStorage.getItem('pomodoroSessions') || '0', 10);
+        }
+
+        function loadSessionCount() {
+            sessionCount.textContent = getSessionCount();
+        }
+
+        // Audio Management
+        function playCurrentPhaseMusic() {
+            stopAllMusic();
+            
+            if (isMuted()) return;
+
+            const audio = currentPhase === 'focus' ? focusAudio : breakAudio;
+            
+            audio.play().catch(error => {
+                console.warn(`Could not play ${currentPhase} audio:`, error);
+                showStatus(`Audio not available for ${currentPhase} mode`, 'warning');
+            });
+        }
+
+        function stopAllMusic() {
+            focusAudio.pause();
+            breakAudio.pause();
+            focusAudio.currentTime = 0;
+            breakAudio.currentTime = 0;
+        }
+
+        function pauseAllMusic() {
+            focusAudio.pause();
+            breakAudio.pause();
+        }
+
+        function setupAudioErrorHandling() {
+            focusAudio.addEventListener('error', () => {
+                console.warn('Focus audio file not found');
+            });
+            
+            breakAudio.addEventListener('error', () => {
+                console.warn('Break audio file not found');
+            });
+        }
+
+        // Volume Controls
+        function updateVolume() {
+            const volume = volumeSlider.value / 100;
+            focusAudio.volume = volume;
+            breakAudio.volume = volume;
+            volumeDisplay.textContent = `${volumeSlider.value}%`;
+            localStorage.setItem('pomodoroVolume', volumeSlider.value);
+            
+            // Update mute button if volume is 0
+            if (volume === 0) {
+                setMuted(true);
+            } else if (isMuted()) {
+                setMuted(false);
+            }
+        }
+
+        function toggleMute() {
+            const muted = !isMuted();
+            setMuted(muted);
+        }
+
+        function setMuted(muted) {
+            localStorage.setItem('pomodoroMuted', muted.toString());
+            
+            if (muted) {
+                focusAudio.volume = 0;
+                breakAudio.volume = 0;
+                muteBtn.textContent = '🔇';
+                muteBtn.classList.add('muted');
+                muteBtn.title = 'Unmute';
+            } else {
+                const volume = volumeSlider.value / 100;
+                focusAudio.volume = volume;
+                breakAudio.volume = volume;
+                muteBtn.textContent = '🔊';
+                muteBtn.classList.remove('muted');
+                muteBtn.title = 'Mute';
+            }
+        }
+
+        function isMuted() {
+            return localStorage.getItem('pomodoroMuted') === 'true';
+        }
+
+        function loadVolumeSettings() {
+            // Load volume
+            const savedVolume = localStorage.getItem('pomodoroVolume');
+            if (savedVolume) {
+                volumeSlider.value = savedVolume;
+                volumeDisplay.textContent = `${savedVolume}%`;
+            }
+            
+            // Load mute state
+            const muted = isMuted();
+            setMuted(muted);
+            
+            // Apply volume if not muted
+            if (!muted) {
+                updateVolume();
+            }
+        }
+
+        // Status Messages
+        function showStatus(message, type = 'success') {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type} show`;
+            
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize the application when the page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        // Handle visibility change (pause when tab is not active)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isRunning) {
+                // Store the exact time when tab becomes hidden
+                localStorage.setItem('pomodoroHiddenTime', Date.now().toString());
+            } else if (!document.hidden && isRunning) {
+                // Recalculate time when tab becomes visible again
+                const hiddenTime = localStorage.getItem('pomodoroHiddenTime');
+                if (hiddenTime) {
+                    const elapsed = Math.floor((Date.now() - parseInt(hiddenTime, 10)) / 1000);
+                    timeRemaining = Math.max(0, timeRemaining - elapsed);
+                    localStorage.removeItem('pomodoroHiddenTime');
+                    
+                    if (timeRemaining === 0) {
+                        completePhase();
+                    } else {
+                        updateDisplay();
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
