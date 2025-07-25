@@ -360,11 +360,22 @@
             font-weight: 500;
         }
 
-        /* Audio Controls */
-        .audio-controls {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
+        /* Volume Controls */
+        .volume-controls {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .volume-controls h3 {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .volume-control {
@@ -372,7 +383,6 @@
             align-items: center;
             justify-content: center;
             gap: 1rem;
-            margin-bottom: 1rem;
         }
 
         .volume-slider {
@@ -584,7 +594,8 @@
             </ul>
         </div>
 
-        <div class="audio-controls">
+        <div class="volume-controls">
+            <h3>Volume Controls</h3>
             <div class="volume-control">
                 <button class="mute-btn" id="muteBtn" title="Toggle mute (M)">
                     <span class="mute-icon">🔊</span>
